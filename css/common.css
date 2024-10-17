@@ -1,27 +1,24 @@
 body {
- background-color: #a2bedf;
- overflow: hidden;
- text-align:center;
+  background-color: #a2bedf;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center; 
 }
 
 body,
 html {
- height: 100%;
- width: 100%;
- margin: 0;
- padding: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 svg {
- width: 800px;
- height: 600px;
- visibility: hidden;
- 
+  width: 800px;
+  height: 600px;
+  visibility: hidden;
 }
 
-.penguinTop{
- -webkit-tap-highlight-color:transparent;
+.penguinTop {
+  -webkit-tap-highlight-color: transparent;
 }
+

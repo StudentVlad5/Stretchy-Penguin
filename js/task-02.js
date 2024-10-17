@@ -1,30 +1,18 @@
-const ingredients = [
-  'Potatoes',
-  'Mushrooms',
-  'Garlic',
-  'Tomatos',
-  'Herbs',
-  'Condiments',
-];
-const listOfIngradients = document.querySelector("#ingredients");
+const tl = gsap.timeline({ onComplete: createTimeline });
 
-// by for
-let arrayIngradientsEl = [];
-for(let i=0; i < ingredients.length; i +=1){
-let liElem =  document.createElement('li');
-liElem.classList.add('item');
-liElem.innerHTML = ingredients[i];
-arrayIngradientsEl.push(liElem)
+function createTimeline() {
+  gsap.set("svg"[0], { opacity: 1 });
+  gsap.utils.toArray(".anim").forEach((element) => {
+    tl.add(createTween(element));
+  });
+
+  return tl;
 }
-listOfIngradients.append(...arrayIngradientsEl);
-listOfIngradients.innerHTML = '';
 
+function createTween(element) {
+  tl.set(element, { opacity: 1 });
+  tl.set(element, { opacity: 0, delay: element.dataset.number });
+  return tl;
+}
 
-// by map
-const listIngradElem = ingredients.map(options =>{
-let liElem =  document.createElement('li');
-liElem.classList.add('item');
-liElem.innerHTML = options;
-  return liElem
-})
-listOfIngradients.append(...listIngradElem);
+createTimeline();
