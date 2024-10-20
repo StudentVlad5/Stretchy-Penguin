@@ -1,24 +1,32 @@
-html, body {
-  background-color: #0e100f;
-  margin: 0 auto;
-  padding: 0 auto;
-  height: 100vh;
-}
-
 body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	background-color: #fff;
+	color: #333;
+	height: 100vh;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
-svg {
-  width: 500px;
-  max-width: 70vw;
+section {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
 }
 
-h1 {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  text-align: center;
+section div.imgContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 500px;
+	height: 500px;
+	position: relative;
+}
+
+section div.imgContainer img {
+	max-width: 70%;
+	height: auto;
+	position: absolute;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.25);
 }

@@ -1,110 +1,71 @@
-gsap.registerPlugin(Draggable, InertiaPlugin);
+const imageContainer = document.querySelector(".imgContainer");
+const images = imageContainer.querySelectorAll("img");
 
-// make snowflakes
-// lil snowflake generator
-class Snowflake {
-  constructor() {
-    this.el = document.createElementNS("http://www.w3.org/2000/svg", "image");
-    const href = `https://assets.codepen.io/16327/flake-${gsap.utils.random(1,6,1)}.png`;
-    const size = gsap.utils.random([60, 30, 70]);
-    const xPosition = gsap.utils.random(0, 1000);
+const timeline = gsap.timeline();
 
-    this.el.setAttributeNS("http://www.w3.org/1999/xlink", "href", href);
-    this.el.setAttributeNS(null, "width", size);
-    this.el.setAttributeNS(null, "height", size);
-    this.el.setAttributeNS(null, "x", xPosition);
+let current = 0;
+let z = 1000000;
 
-    this.el.setAttributeNS(null, "y", -50);
-  }
+timeline
+	.set(images, {
+		x: () => {
+			return 500 * Math.random() - 250;
+		},
+		y: "500%",
+		rotation: () => {
+			return Math.random() * 90 - 45;
+		},
+	})
+	.to(images, {
+		x: 0,
+		y: 0,
+		stagger: -0.25,
+	})
+	.to(images, {
+		rotation: () => {
+			return Math.random() * 16 - 8;
+		},
+	});
 
-  get element() {
-    return this.el;
-  }
-}
-// create snowflakes
-function createSnowflakes() {
-  const snowContainer = document.getElementById("snow");
+images.forEach((image) => {
+	z--;
 
-  for (let i = 0; i < 30; i++) {
-    const snowflake = new Snowflake();
-    snowContainer.appendChild(snowflake.element);
-  }
-}
-createSnowflakes();
-
-let snowfall = gsap.to("#snow image", {
-  y: 1000,
-  ease: "none",
-  duration: "random([3, 4, 5])",
-  rotation: "random(-360, 360, 5)",
-  x: "random(-1000, 1000, 5)",
-  transformOrigin: "center",
-  stagger: {
-    amount: 5,
-    repeat: -1
-  },
-  paused: true
+	image.style.zIndex = z;
 });
 
+imageContainer.addEventListener("click", () => {
+	z--;
 
-const coords = document.querySelector("#coords");
-const tracker = InertiaPlugin.track("#snowglobe", "x,y")[0];
+	let direction = "150%";
+	let rotationAngle = 15;
 
-gsap.set("#snowman", { transformOrigin: "bottom center" });
+	if (Math.random() > 0.5) {
+		direction = "-150%";
+		rotationAngle = -15;
+	}
 
-const wobbleSnowman = gsap.quickTo("#snowman", "rotation", { duration: 0.4 });
-const moveSkyX = gsap.quickTo("#sky", "xPercent", { duration: 0.4 });
+	const currentImage = images[current];
 
-function transformer(min, max, value) {
-  let clamp = gsap.utils.clamp(-2000, 2000);
-  let mapToRange = gsap.utils.mapRange(-2000, 2000, min, max);
-  let transform = gsap.utils.pipe(clamp, mapToRange);
-  return transform(value);
-}
+	const flipTimeline = gsap.timeline();
 
-let isSnowing = false;
-Draggable.create("#snowglobe", {
-  inertia: true,
-  bounds: "body",
-  onDragStart: () => {
-    isSnowing = true;
+	flipTimeline
+		.set(currentImage, { x: 0 })
+		.to(currentImage, {
+			x: direction,
+			rotation: () => {
+				return rotationAngle;
+			},
+		})
+		.set(currentImage, { zIndex: z })
+		.to(currentImage, {
+			x: 0,
+			rotation: () => {
+				return Math.random() * 16 - 8;
+			},
+		});
 
-    gsap.to("#snow", {
-      opacity: 1,
-      overwrite: true
-    });
-    snowfall.play(0);
-  },
-  onDragEnd: () => {
-    isSnowing = false;
+	// currentImage.style.zIndex = z;
 
-    gsap.to("#snow", {
-      opacity: 0,
-      overwrite: true,
-      onComplete: () => {
-        if (isSnowing) return;
-        console.log("pause");
-        snowfall.pause();
-      }
-    });
-  }
+	current++;
+	current = current % images.length;
 });
-
-function updateOnVelocity() {
-  let x = tracker.get("x");
-
-  if (x === 0) return;
-  coords.innerHTML = x;
-
-  wobbleSnowman(transformer(90, -90, x));
-  moveSkyX(transformer(40, -40, x));
-
-  let speed = transformer(-10, 10, x);
-
-  gsap.to(snowfall, {
-    duration: 1,
-    timeScale: Math.abs(speed) + 0.2
-  });
-}
-
-gsap.ticker.add(updateOnVelocity);
