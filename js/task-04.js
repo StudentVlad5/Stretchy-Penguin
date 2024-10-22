@@ -1,436 +1,131 @@
-var data = [
-  {
-    location: "Lima",
-    days: "6 days",
-    accommodation: "61.92",
-    transportation: "191.02",
-    food: "71.08",
-    experiences: "10.27",
-    miscellaneous: "44.42",
+console.clear();
 
-    total: "378.71",
-    grTotal: "378.71",
-  },
+window.addEventListener("load", () => {
+  const loopContainers = gsap.utils.toArray(".loop-container");
+  loopContainers.forEach((el, i) => {
+    // Scope the selector to each loop container
+    const elements = gsap.utils.toArray(".element", el);
+    const loop = horizontalLoop(elements, {
+      repeat: -1,
+      paused: false,
+      paddingRight: 10,
+      reversed: i % 2 > 0,
+    });
+  });
+});
 
-  {
-    location: "Paracas",
-    days: "1 day",
-    accommodation: "12.49",
-    transportation: "0",
-    food: "8.88",
-    experiences: "0",
-    miscellaneous: "5.00",
-    bigT: { name: "Ballestas Island Tour", cost: "15.00" },
-    total: "41.37",
-    grTotal: "420.08",
-  },
-
-  {
-    location: "Huacachina",
-    days: "1 day",
-    accommodation: "12.49",
-    transportation: "0",
-    food: "14.02",
-    experiences: "0",
-    miscellaneous: "7.50",
-    bigT: { name: "Sand Dunes", cost: "15.00" },
-    total: "49.01",
-    grTotal: "469.09",
-  },
-  {
-    location: "Nazca",
-    days: "1 day (Quick stop)",
-    accommodation: "0",
-    transportation: "0",
-    food: "8.33",
-    experiences: "0",
-    miscellaneous: "0",
-    total: "8.33",
-    grTotal: "477.42",
-  },
-  {
-    location: "Arequipa",
-    days: "2 days",
-    accommodation: "41.65",
-    transportation: "1.67",
-    food: "45.81",
-    experiences: "26.38",
-    miscellaneous: "5.83",
-    total: "121.34",
-    grTotal: "598.76",
-  },
-  {
-    location: "Colca Canyon",
-    days: "2 days",
-    accommodation: "0",
-    transportation: "0",
-    food: "23.05",
-    experiences: "4.16",
-    miscellaneous: "1.67",
-    bigT: { name: "Colca Canyon Tour", cost: "29.40" },
-    total: "58.28",
-    grTotal: "657.04",
-  },
-
-  {
-    location: "Puno",
-    days: "1 day",
-    accommodation: "18.05",
-    transportation: "29.99",
-    food: "8.88",
-    experiences: "0",
-    miscellaneous: "79.27",
-    bigT: { name: "Puno Lake Tour", cost: "10.00" },
-    total: "146.19",
-    grTotal: "803.23",
-  },
-  {
-    location: "Cusco",
-    days: "8 days",
-    accommodation: "172.14",
-    transportation: "114.39",
-    food: "82.86",
-    experiences: "27.21",
-    miscellaneous: "10.40",
-    bigT: {
-      name: "Sacred Valley + Alternative Rainbow Mountain Tour",
-      cost: "150.00",
+/*
+    This helper function makes a group of elements animate along the x-axis in a seamless, responsive loop.
+    
+    Features:
+    - Uses xPercent so that even if the widths change (like if the window gets resized), it should still work in most cases.
+    - When each item animates to the left or right enough, it will loop back to the other side
+    - Optionally pass in a config object with values like "speed" (default: 1, which travels at roughly 100 pixels per second), paused (boolean),  repeat, reversed, and paddingRight.
+    - The returned timeline will have the following methods added to it:
+    - next() - animates to the next element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
+    - previous() - animates to the previous element using a timeline.tweenTo() which it returns. You can pass in a vars object to control duration, easing, etc.
+    - toIndex() - pass in a zero-based index value of the element that it should animate to, and optionally pass in a vars object to control duration, easing, etc. Always goes in the shortest direction
+    - current() - returns the current index (if an animation is in-progress, it reflects the final index)
+    - times - an Array of the times on the timeline where each element hits the "starting" spot. There's also a label added accordingly, so "label1" is when the 2nd element reaches the start.
+    */
+function horizontalLoop(items, config) {
+  items = gsap.utils.toArray(items);
+  config = config || {};
+  let tl = gsap.timeline({
+      repeat: config.repeat,
+      paused: config.paused,
+      defaults: { ease: "none" },
+      onReverseComplete: () => tl.totalTime(tl.rawTime() + tl.duration() * 100),
+    }),
+    length = items.length,
+    startX = items[0].offsetLeft,
+    times = [],
+    widths = [],
+    xPercents = [],
+    curIndex = 0,
+    pixelsPerSecond = (config.speed || 1) * 100,
+    snap = config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1), // some browsers shift by a pixel to accommodate flex layouts, so for example if width is 20% the first element's width might be 242px, and the next 243px, alternating back and forth. So we snap to 5 percentage points to make things look more natural
+    totalWidth,
+    curX,
+    distanceToStart,
+    distanceToLoop,
+    item,
+    i;
+  gsap.set(items, {
+    // convert "x" to "xPercent" to make things responsive, and populate the widths/xPercents Arrays to make lookups faster.
+    xPercent: (i, el) => {
+      let w = (widths[i] = parseFloat(gsap.getProperty(el, "width", "px")));
+      xPercents[i] = snap(
+        (parseFloat(gsap.getProperty(el, "x", "px")) / w) * 100 +
+          gsap.getProperty(el, "xPercent")
+      );
+      return xPercents[i];
     },
-    total: "557.00",
-    grTotal: "1360.23",
-  },
-  {
-    location: "Inca Trail",
-    days: "4 days",
-    accommodation: "0",
-    transportation: "0",
-    food: "12.22",
-    experiences: "0",
-    miscellaneous: "143.82",
-    bigT: { name: "Classic Inca Trail", cost: "712.17" },
-    total: "868.21",
-    grTotal: "2,228.44",
-  },
-  {
-    location: "TOTAL",
-    days: "26 days",
-    accommodation: "318.74",
-    transportation: "337.07",
-    food: "275.13",
-    experiences: "68.02",
-    miscellaneous: "297.91",
-    bigT: { name: "Tours", cost: "931.57" },
-    total: "2,228.44",
-    grTotal: "2,228.44",
-  },
-];
-
-function getData(i) {
-  $(".info__location").html(data[i].location);
-  $(".info__days").html(data[i].days);
-  $(".js-acc").html(data[i].accommodation);
-  $(".js-trp").html(data[i].transportation);
-  $(".js-food").html(data[i].food);
-  $(".js-exp").html(data[i].experiences);
-  $(".js-misc").html(data[i].miscellaneous);
-  $(".js-tot").html(data[i].total);
-  $(".js-grtot").html(data[i].grTotal);
-
-  if ($(data[i].bigT).length > 0) {
-    if ($(".info__table__tours").length > 0) {
-      $(".js-bigt").html(data[i].bigT.cost);
-      $(".js-bigtName").html(data[i].bigT.name);
-    } else {
-      $(
-        '<div class="info__table__child info__table__tours"><div class="info__table__title js-bigtName">' +
-          data[i].bigT.name +
-          '</div><div class="info__table__expense"><span class="dollar">$</span><span class="odometer js-bigt">' +
-          data[i].bigT.cost +
-          "</span></div></div>"
-      ).insertBefore(".info__table__total");
-    }
-  } else {
-    $(".info__table__tours").remove();
+  });
+  gsap.set(items, { x: 0 });
+  totalWidth =
+    items[length - 1].offsetLeft +
+    (xPercents[length - 1] / 100) * widths[length - 1] -
+    startX +
+    items[length - 1].offsetWidth *
+      gsap.getProperty(items[length - 1], "scaleX") +
+    (parseFloat(config.paddingRight) || 0);
+  for (i = 0; i < length; i++) {
+    item = items[i];
+    curX = (xPercents[i] / 100) * widths[i];
+    distanceToStart = item.offsetLeft + curX - startX;
+    distanceToLoop =
+      distanceToStart + widths[i] * gsap.getProperty(item, "scaleX");
+    tl.to(
+      item,
+      {
+        xPercent: snap(((curX - distanceToLoop) / widths[i]) * 100),
+        duration: distanceToLoop / pixelsPerSecond,
+      },
+      0
+    )
+      .fromTo(
+        item,
+        {
+          xPercent: snap(
+            ((curX - distanceToLoop + totalWidth) / widths[i]) * 100
+          ),
+        },
+        {
+          xPercent: xPercents[i],
+          duration:
+            (curX - distanceToLoop + totalWidth - curX) / pixelsPerSecond,
+          immediateRender: false,
+        },
+        distanceToLoop / pixelsPerSecond
+      )
+      .add("label" + i, distanceToStart / pixelsPerSecond);
+    times[i] = distanceToStart / pixelsPerSecond;
   }
-}
-
-gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
-
-let tl = gsap.timeline();
-gsap.set(".path", { drawSVG: 0 });
-gsap.set(".pin-base, .pin", { opacity: 0 });
-
-document.addEventListener("ready", getData(0));
-
-function animatePin(place) {
-  var tl = new TimelineMax();
-  tl.to("#" + place + " g", 0.5, { opacity: 1 }, 0);
-  tl.to("#" + place + " .pin", 0.2, { y: 0 }, 0);
+  function toIndex(index, vars) {
+    vars = vars || {};
+    Math.abs(index - curIndex) > length / 2 &&
+      (index += index > curIndex ? -length : length); // always go in the shortest direction
+    let newIndex = gsap.utils.wrap(0, length, index),
+      time = times[newIndex];
+    if (time > tl.time() !== index > curIndex) {
+      // if we're wrapping the timeline's playhead, make the proper adjustments
+      vars.modifiers = { time: gsap.utils.wrap(0, tl.duration()) };
+      time += tl.duration() * (index > curIndex ? 1 : -1);
+    }
+    curIndex = newIndex;
+    vars.overwrite = true;
+    return tl.tweenTo(time, vars);
+  }
+  tl.next = (vars) => toIndex(curIndex + 1, vars);
+  tl.previous = (vars) => toIndex(curIndex - 1, vars);
+  tl.current = () => curIndex;
+  tl.toIndex = (index, vars) => toIndex(index, vars);
+  tl.times = times;
+  tl.progress(1, true).progress(0, true); // pre-render for performance
+  if (config.reversed) {
+    tl.vars.onReverseComplete();
+    tl.reverse();
+  }
   return tl;
 }
-
-tl.add(animatePin("Lima"))
-  .from(".line", {
-    scrollTrigger: {
-      trigger: "body",
-      scrub: true,
-      start: "top top",
-      end: "bottom bottom",
-    },
-    scaleX: 0,
-    transformOrigin: "left center",
-    ease: "none",
-  })
-  .to("#lima-para", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "top 0px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to(".helper", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "top 0px",
-      scrub: true,
-      end: "+=200",
-    },
-    opacity: 0,
-  })
-  .to("#Paracas g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "800px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(1),
-      onEnterBack: () => getData(0),
-    },
-    opacity: 1,
-  })
-  .to("#Paracas .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "800px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#para-huaca", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "1200px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-
-  .to("#Huacachina g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "2000px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(2),
-      onEnterBack: () => getData(1),
-    },
-    opacity: 1,
-  })
-  .to("#Huacachina .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "2000px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#huaca-nazca", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "2500px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to("#Nazca g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "3200px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(3),
-      onEnterBack: () => getData(2),
-    },
-    opacity: 1,
-  })
-  .to("#Nazca .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "3200px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#nazca-areq", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "3800px",
-      scrub: true,
-      end: "+=700",
-    },
-    drawSVG: true,
-  })
-  .to("#Arequipa g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "4400px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(4),
-      onEnterBack: () => getData(3),
-    },
-    opacity: 1,
-  })
-  .to("#Arequipa .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "4400px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#areq-colca", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "5000px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to("#Colca g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "5800px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(5),
-      onEnterBack: () => getData(4),
-    },
-    opacity: 1,
-  })
-  .to("#Colca .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "5800px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#colca-puno", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "6300px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to("#Puno g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "7100px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(6),
-      onEnterBack: () => getData(5),
-    },
-    opacity: 1,
-  })
-  .to("#Puno .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "7100px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#puno-cusco", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "7500px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to("#Cusco g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "8300px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(7),
-      onEnterBack: () => getData(6),
-    },
-    opacity: 1,
-  })
-  .to("#Cusco .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "8300px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("#cusco-inca", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "8800px",
-      scrub: true,
-      end: "+=800",
-    },
-    drawSVG: true,
-  })
-  .to("#Inca g", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "9500px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(8),
-      onEnterBack: () => getData(7),
-    },
-    opacity: 1,
-  })
-  .to("#Inca .pin", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "9500px",
-      scrub: true,
-      end: "+=50",
-    },
-    y: 0,
-  })
-  .to("body", {
-    scrollTrigger: {
-      trigger: "body",
-      start: "10500px",
-      scrub: true,
-      end: "+=50",
-      onEnter: () => getData(9),
-      onEnterBack: () => getData(8),
-    },
-    opacity: 1,
-  });
