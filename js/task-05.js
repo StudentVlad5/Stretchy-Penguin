@@ -1,9 +1,17 @@
-const nameInput = document.querySelector('#name-input');
-const nameOutput = document.querySelector('#name-output');
+gsap.registerPlugin(ScrollTrigger);
 
-nameInput.addEventListener('input',(event)=>{
-    nameOutput.textContent = event.currentTarget.value;
-    if(!event.currentTarget.value.length) {
-        nameOutput.textContent = "Anonymous";
-    }
-})
+const textElements = gsap.utils.toArray(".text");
+
+textElements.forEach((text) => {
+  gsap.to(text, {
+    backgroundSize: "100%",
+    ease: "none",
+    scrollTrigger: {
+      trigger: text,
+      start: "center 80%",
+      end: "center 20%",
+      scrub: true,
+      markers: true,
+    },
+  });
+});
